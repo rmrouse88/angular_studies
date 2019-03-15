@@ -10,9 +10,9 @@ Before going any further, keep this in your mind:
 
 <b><i>An Angular application is a tree of views</i></b>
 
-#### applicationRef.tick()
+# applicationRef.tick()
 
-A triggering event will cause the ```ApplicationRef.tick()``` method to fire.
+A triggering event will (after passing through several zones) fire ```ApplicationRef.tick()```.
 
 This method will call the ```detectChanges()``` method of the <b><i>root</i></b> view.  Soon after, the first ```checkAndUpdateView()``` method is fired.
 
@@ -105,13 +105,21 @@ This method will call the ```detectChanges()``` method of the <b><i>root</i></b>
 
 #### shiftInitState(): 
 
-#### callLifeCycleHooks
+#### callLifeCycleHooks  
+  
+> example 
+We have a click event handler listening to a button within our `<AppComponent>` template.  This button will toggle the `name` property on the AppComponent, which is being fed via property binding to its child `<hello>` component.
+  
+ A glance at the component instance, which is present as an instance in the ElementNode and the <hello> view.Component model, shows that Angular has created a temporary variable that co-exists with the known "name" property in the model:  `_name`.  The `_name` variable actually holds the new value.
+  
+The parent view of <hello> has already taken care of updating the model by updating its .oldValues array to reflect the change in the .name instance property.  It then rendered the DOM elements to reflect the current state of the model (appending the custom attribute name to the renderComponent node).  However, `<hello>`'s own view has not yet been updated to reflect the parent property interpolated within its template.
+  
+Only once the updateRenderer has run its course on the parent view does `checkAndUpdateView` call `execComponentViewsAction()`.  This function browses node definitions within `<AppComponent> ` and checks their flags to determine whether the node represents a component view; if it encounters a component view, it calls `checkAndUpdateView()` on that view.  This process will repeat on all subsequent child component views within this view until it reaches the end of that portion of the tree, and so on, and so forth, until a view is encountered that does not contain any child component views.  The overall process is depth first.
+
+
+
+
+
+
   
   
-
-
-```JavaScript
-
-var myVar = 10;
-
-```
