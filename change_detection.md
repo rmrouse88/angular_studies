@@ -25,9 +25,24 @@ This method will call the ```detectChanges()``` method of the <b><i>root</i></b>
 #### Services.updateDirectives()
   directives are those 
 #### execEmbeddedViewActions()
-    there are two types of views:  
-      1) Host Views - associated with a component
-      2) Embedded Views - associated with a directive
+  there are two types of views:  
+  1) Host Views
+  - associated with a component's render element
+  - handled at near the end of a view's checkAndUpdateView() cycle (see execComponentViews() method below)
+  2) Embedded Views
+  - associated with structural directives
+  - handled immediately after services.updateDirectives()
+      
+  execEmbeddedViewActions() looks for views created by structural directives in the current DOM.  Should be more clear why methods such as Services.updateDirectives() precede execEmbeddedViews():  It needs to be clear on what directives are active, and how many embedded views exist within the current view before it can take any actions relating to them!  
+      
+  The term "Embedded View" is taken quite literally by Angular under the hood.  Structural directives generate a comment node in the DOM, which is the same node that contains references to any embedded views.  A new checkAndUpdateView() cycle is kicked off for each embedded view located within a given comment node.  The embedded views each contain their own sets of node definitions and oldValues arrays, as well as their own updateDirectives and updateRenderer functions.  At this point, the cycle will follow the same blueprint for checkAndUpdateView as was previously defined:
+      
+  1) Mark any projected content for check
+  2) Update directives associated with that given embedded view
+  3) Evaluate and checkAndUpdate any nested structural directives contained within the current embedded view
+  4) Finish rendering non-components contained by the view
+  5) Search for component views contained within the embedded view to checkAndUpdate
+      
 #### callLifecycleHooksChildrenFirst
 #### updateRenderer(_ck, _v)
   - _ck = check function, _v = view
